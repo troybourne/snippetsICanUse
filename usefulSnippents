@@ -1,0 +1,16 @@
+//concat and add a comman for csv creation
+
+
+
+void convertCsvArrayToString(){
+  csvString="";
+  for(int i=0; i<=csvArraySize; i++){
+    if(i==deviceID){
+      csvArray[deviceID]=String(random(13,20));
+    }
+    csvString.concat(csvArray[i]);
+    if(i < csvArraySize-1){
+      csvString.concat(",");
+    }
+  }
+}
