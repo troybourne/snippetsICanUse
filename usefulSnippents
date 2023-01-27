@@ -1,6 +1,141 @@
 //concat and add a comman for csv creation
 
+uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // braodcast macAddress
 
+const int csvArraySize = 12;
+String csvArray[csvArraySize] = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "88888"};
+String csvString = "";
+String receivedCsv = "";
+String updatedCsvString ="";
+int deviceID = 8;
+
+//declare your functions
+void broadcast();
+
+// The script below is the simplest code that can accomplish all needed goals for a tabletop test
+
+typedef struct struct_message_IN
+{
+  String incomingCsv = csvString;
+} struct_message_IN;
+
+typedef struct struct_message_OUT
+{
+  String outGoingCsv = csvString;
+} struct_message_OUT;
+
+struct_message_IN INCOMING;
+struct_message_OUT OUTGOING;
+
+String success;
+
+void convertCsvArrayToString()
+{
+  csvString = "";
+  for (int i = 0; i <= csvArraySize; i++)
+  {
+    if (i == deviceID)
+    {
+      csvArray[deviceID] = String(random(13, 20));
+    }
+    csvString.concat(csvArray[i]);
+    if (i < csvArraySize - 1)
+    {
+      csvString.concat(",");
+    }
+  }
+}
+
+void converStringToArray()
+{
+  //convert the received string to an array for processing
+
+}
+
+void processDeviceSpecificChanges() 
+{
+// change the values that this device is responsible for
+}
+
+void OnDataSent(const uint8_t *mac_add, esp_now_send_status_t status)
+{
+  Serial.print("\r\nLast Packet Send Status:\t");
+  Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+  if (status == 0)
+  {
+    success = "Delivery Success :)";
+  }
+  else
+  {
+    success = "Delivery Fail :(";
+  }
+  printf("onDataSent fired and sent %s", OUTGOING);
+}
+
+void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
+{
+  memcpy(&INCOMING, incomingData, sizeof(INCOMING));
+  printf("onDataRecv fired and recieved %s\n", INCOMING);
+  delay(1000);
+}
+
+void setup()
+{
+  Serial.begin(115200);
+  Serial.setTimeout(100);
+  WiFi.mode(WIFI_STA);
+  if (esp_now_init() != ESP_OK)
+  {
+    Serial.println("Error initializing ESP-NOW");
+    return;
+  }
+if(esp_now_init() == ESP_OK){
+  // Register for a callback function that will be called when data is received or sent
+  esp_now_register_recv_cb(OnDataRecv);
+  esp_now_register_send_cb(OnDataSent);
+}
+}
+
+void broadcast(const String &message)
+{
+     // Register peer
+  esp_now_peer_info_t peerInfo ={};
+  memcpy(peerInfo.peer_addr, broadcastAddress, 6);
+
+if(!esp_now_is_peer_exist(broadcastAddress))
+{
+  esp_now_add_peer(&peerInfo);
+}
+esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&OUTGOING, sizeof(struct_message_OUT));
+
+  // Add peer
+  if (result== ESP_OK)
+  {
+    Serial.println("SUCCESS you added peer");
+    return;
+  }
+  else{
+    Serial.println("failed to add peer");
+  }
+}
+
+void loop()
+{
+  //delay(1300);
+  broadcast(OUTGOING.outGoingCsv);
+  /*
+    esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&OUTGOING, sizeof(struct_message_OUT)); // Send the ESP now command packet
+  if (result == ESP_OK)
+  {
+    Serial.println("Sent with success - main loop message");
+  }
+  else
+  {
+    Serial.println("Error sending the data - main loop message");
+    Serial.println(OUTGOING.outGoingCsv);
+  }
+  */
+}
 
 void convertCsvArrayToString(){
   csvString="";
