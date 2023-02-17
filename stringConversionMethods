@@ -1,0 +1,89 @@
+#include <Arduino.h>
+#include <stdio.h>
+#include <string.h>
+#include <iostream>
+
+
+long int startTime = 0;
+bool timerIsStarted = false;
+int delayTime = 3000;
+int offDelayTime = delayTime * 2;
+int count = 0;
+char* message[] = { "timer has cycled" };
+int msgLen = sizeof(message);
+const int CSV_ARRAY_SIZE = 6;
+String csvArray[CSV_ARRAY_SIZE] = { "1", "2", "3", "4", "5", "6" };
+String newConcatStr = "";
+
+void setup() {
+  // put your setup code here, to run once:
+  pinMode(2, OUTPUT);
+  Serial.begin(9600);
+  Serial2.begin(9600);
+}
+
+void fireLed() {
+  if (timerIsStarted == false) {
+    startTime = millis();
+    timerIsStarted = true;
+  }
+  if (millis() - startTime >= delayTime) {
+    digitalWrite(2, LOW);
+  }
+  if (millis() - startTime >= offDelayTime) {
+    digitalWrite(2, HIGH);
+    timerIsStarted = false;
+    count++;
+    char* message[] = { "timer has cycled \n" };
+    Serial2.write(*message);
+    Serial.print(*message);
+    Serial.println(count);
+  }
+  return;
+}
+
+void concatArrayToString() {
+  for (int i = 0; i < CSV_ARRAY_SIZE; i++) 
+  {
+    newConcatStr.concat(csvArray[i]);
+    if (i < CSV_ARRAY_SIZE-1) {
+      newConcatStr.concat(",");
+    }
+  }
+  Serial.print(newConcatStr);
+  
+  
+}
+
+int updateForBroadcast()
+{
+  int modifiedLiveTemp= 2*csvArray[2].toInt();
+  return modifiedLiveTemp;
+}
+
+void twoStringConversionMethods()
+{
+//FIRST METHOD OF STRING TO CHAR ARRAY
+  String firstString = "1,2,3,4,5,6";
+  char* firstCharArray = new char[firstString.length() +1];
+
+  for (int i = 0; i < firstString.length(); i++)
+  {
+    firstCharArray[i] =  firstString[i];
+    Serial.print(firstCharArray[i]);
+    firstCharArray[i] ="";
+
+  }
+ Serial.print("\n");
+ delete[] firstCharArray;
+
+ // SECOND METHOD OF STRING TO CHAR ARRAY
+String secondString = "7,8,9,10,11,12";
+char* ptrSecondString = &secondString[0];
+Serial.print(ptrSecondString);
+Serial.print("\n");
+ptrSecondString = NULL;
+delete ptrSecondString;
+return;
+
+}
